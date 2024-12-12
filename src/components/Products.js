@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { Search, SentimentDissatisfied } from "@mui/icons-material";
 import {
   CircularProgress,
