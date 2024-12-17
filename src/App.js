@@ -26,6 +26,9 @@ import { ThemeProvider } from "@mui/material/styles";  // Import ThemeProvider
 import ipConfig from "./ipConfig.json";
 import theme from "./theme";  // Import the theme
 import {BrowserRouter as Router,Switch,Route} from "react-router-dom";
+import Checkout from "./components/Checkout";
+import Thanks from "./components/Thanks";
+
 
 export const config = {
   endpoint: `http://${ipConfig.workspaceIp}:8082/api/v1`,
@@ -41,6 +44,8 @@ function App() {
               <Route exact path="/" component={Product} />  {/* Route for the homepage */}
               <Route path="/register" component={Register} />  {/* Route for registration page */}
               <Route path="/login" component={Login} />  {/* Route for login page */}
+              <Route path="/checkout" component={Checkout} />  {/* Route for checkout page */}
+              <Route path="/thanks" component={Thanks} />  {/* Route for Thanks page */}
             </Switch>
           </div>
         </Router>
