@@ -23,7 +23,6 @@ import Product from "./components/Products";
 import Login from "./components/Login";
 import { ThemeProvider } from "@mui/material/styles";  // Import ThemeProvider
 // import Register from "./components/Register"; // Commented as not needed yet
-import ipConfig from "./ipConfig.json";
 import theme from "./theme";  // Import the theme
 import {BrowserRouter as Router,Switch,Route} from "react-router-dom";
 import Checkout from "./components/Checkout";
@@ -31,7 +30,7 @@ import Thanks from "./components/Thanks";
 
 
 export const config = {
-  endpoint: `http://${ipConfig.workspaceIp}:8082/api/v1`,
+  endpoint: `https://qkart_frontend.onrender.com//api/v1`,
 };
 
 function App() {
