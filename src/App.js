@@ -28,6 +28,7 @@ import {BrowserRouter as Router,Switch,Route} from "react-router-dom";
 import Checkout from "./components/Checkout";
 import Thanks from "./components/Thanks";
 import ipConfig from "./ipConfig.json";
+import ChatBot from "./components/ChatBot";
 
 
 export const config = {
@@ -47,6 +48,7 @@ function App() {
               <Route path="/checkout" component={Checkout} />  {/* Route for checkout page */}
               <Route path="/thanks" component={Thanks} />  {/* Route for Thanks page */}
             </Switch>
+            <ChatBot />
           </div>
         </Router>
       </React.StrictMode>
