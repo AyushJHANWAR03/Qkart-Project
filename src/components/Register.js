@@ -42,42 +42,37 @@ const Register = () => {
    * }
    */
   const register = async (formData) => {
-    updateLoader(true)
-
-    let url=config.endpoint;
-    console.log(url)
-     try{
-      let request = await axios.post(`${url}/auth/register`,{
-        "username": formData.username,
-        "password": formData.password
-        })
-        // console.log(request.data.data)
-        console.log(request.data)
-        updateLoader(false)
-      enqueueSnackbar("Registered successfully",{ variant: 'success' })
+    updateLoader(true);
+    let url = config.endpoint;
+    
+    try {
+      const response = await axios.post(`${url}/auth/register`, {
+        username: formData.username,
+        password: formData.password
+      });
       
-      history.push("/login")
+      updateLoader(false);
       
+      if (response.data.success) {
+        enqueueSnackbar("Registered successfully", { variant: 'success' });
+        // Store user data in localStorage
+        localStorage.setItem("username", formData.username);
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("balance", response.data.balance || "5000");
+        history.push("/");
+      }
+    } catch (e) {
+      updateLoader(false);
+      if (e.response) {
+        enqueueSnackbar(e.response.data.message, { variant: 'error' });
+      } else {
+        enqueueSnackbar(
+          "Something went wrong. Check that the backend is running, reachable and returns valid JSON.",
+          { variant: 'error' }
+        );
+      }
     }
-    catch(e){
-
-          axios.post(`${url}/auth/register`,{
-            "username":formData.username,
-            "password": formData.password
-              }).catch((e)=>{
-                if(e.response){
-                  enqueueSnackbar(e.response.data.message,{ variant: 'error' })
-                }
-                else {
-                  // Something happened in setting up the request that triggered an Error
-                  enqueueSnackbar("Something went wrong. Check that the backend is running, reachable and returns valid JSON.",{ variant: 'error' })
-                }
-              })
-              updateLoader(false)
-       
-      }//catch function close
-      
-    } //main funciton resigter closed
+  };
 
   
 

@@ -27,10 +27,11 @@ import theme from "./theme";  // Import the theme
 import {BrowserRouter as Router,Switch,Route} from "react-router-dom";
 import Checkout from "./components/Checkout";
 import Thanks from "./components/Thanks";
+import ipConfig from "./ipConfig.json";
 
 
 export const config = {
-  endpoint: `https://qkart_frontend.onrender.com/api/v1`,
+  endpoint: `http://${ipConfig.workspaceIp}:8082/api/v1`,
 };
 
 function App() {

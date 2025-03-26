@@ -1,56 +1,48 @@
-var express = require("express");
-var router = express.Router();
-const { handleError, getProduct } = require("../utils");
-var { products } = require("../db");
+const express = require('express');
+const router = express.Router();
+const { handleError } = require('../utils');
+const { products } = require('../db');
 
-router.get("/", (req, res) => {
-  console.log("Request received for retrieving products list");
-
-  products.find({}, (err, docs) => {
-    if (err) {
-      return handleError(res, err);
+// Get all products
+router.get('/', async (req, res) => {
+    try {
+        const allProducts = await products.find({});
+        return res.status(200).json(allProducts);
+    } catch (error) {
+        return handleError(res, error);
     }
-    return res.status(200).json(docs);
-  });
 });
 
-// /search?value=
-router.get("/search", (req, res) => {
-  console.log("Request received for searching ", req.query.value);
-
-  //Creating a RegEx to search
-  const searchRegex = new RegExp(req.query.value.replace(/['"]+/g, ""), "i");
-
-  products.find(
-    { $or: [{ name: searchRegex }, { category: searchRegex }] },
-    (err, docs) => {
-      if (err) {
-        return handleError(res, err);
-      }
-
-      if (docs.length) {
-        return res.status(200).json(docs);
-      } else {
-        return res.status(404).json([]);
-      }
+// Get product by ID
+router.get('/:id', async (req, res) => {
+    try {
+        const product = await products.findById(req.params.id);
+        if (!product) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Product not found' 
+            });
+        }
+        return res.status(200).json(product);
+    } catch (error) {
+        return handleError(res, error);
     }
-  );
 });
 
-router.get("/:id", async (req, res) => {
-  console.log(
-    `Request received for retrieving product with id: ${req.params.id}`
-  );
-  try {
-    const product = await getProduct(req.params.id);
-    if (product) {
-      return res.status(200).json(product);
-    } else {
-      return res.status(404).json();
+// Search products
+router.get('/search', async (req, res) => {
+    try {
+        const searchValue = req.query.value;
+        const searchResults = await products.find({
+            $or: [
+                { name: { $regex: searchValue, $options: 'i' } },
+                { category: { $regex: searchValue, $options: 'i' } }
+            ]
+        });
+        return res.status(200).json(searchResults);
+    } catch (error) {
+        return handleError(res, error);
     }
-  } catch (error) {
-    handleError(res, error);
-  }
 });
 
 module.exports = router;

@@ -1,55 +1,86 @@
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { Avatar, Button, Stack } from "@mui/material";
-import {useHistory} from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import Box from "@mui/material/Box";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "./Header.css";
 
 const Header = ({ children, hasHiddenAuthButtons }) => {
-  let history=useHistory();
+  const history = useHistory();
+  const [username, setUsername] = useState("");
   
-  let userName=localStorage.getItem("username");
+  useEffect(() => {
+    // Get username from localStorage
+    const storedUsername = localStorage.getItem("username");
+    if (storedUsername) {
+      setUsername(storedUsername);
+    } else {
+      setUsername(""); // Clear username if not found in localStorage
+    }
+  }, [localStorage.getItem("username")]); // Re-run effect when username in localStorage changes
 
+  const logout = () => {
+    // Clear all localStorage data
+    localStorage.removeItem("token");
+    localStorage.removeItem("username");
+    localStorage.removeItem("balance");
+    localStorage.clear(); // Clear any other data
+    
+    setUsername(""); // Clear username state
+    history.push("/");
+    window.location.reload(); // Force a page reload to clear all states
+  };
 
-const clear=()=>{
-  localStorage.clear();
-  window.location.reload();
-}
-
-
+  if (hasHiddenAuthButtons) {
     return (
       <Box className="header">
-      <Box className="header-title">
-            <img src="logo_light.svg" alt="QKart-icon"></img>
+        <Box className="header-title">
+          <img src="logo_light.svg" alt="QKart-icon"></img>
         </Box>
-        {children}
-      {hasHiddenAuthButtons?(
         <Button
           className="explore-button"
           startIcon={<ArrowBackIcon />}
           variant="text"
-          onClick={(e)=>{history.push("/")}}
+          onClick={() => history.push("/")}
         >
           Back to explore
         </Button>
-      ):(userName?(
-        <Stack direction="row" spacing={2} alignItems="center">
-          <Avatar alt={userName}  src="/public/avatar.png" />
-          <p> {userName}</p>
-          <Button  variant="contained"
-          onClick={clear}
-          >LOGOUT</Button></Stack>
-        ):(
-          <Stack direction="row" spacing={2}>
-            <Button  variant="contained"
-              onClick={(e)=>{history.push("/login")}}
-            >LOGIN</Button>
-          <Button  variant="contained" onClick={(e)=>{history.push("/register")}}>REGISTER</Button>
-          </Stack>)
-          )}
-     </Box>
-     
+      </Box>
     );
+  }
+
+  return (
+    <Box className="header">
+      <Box className="header-title">
+        <img src="logo_light.svg" alt="QKart-icon"></img>
+      </Box>
+      {children}
+      {username ? (
+        <Stack direction="row" spacing={2} alignItems="center">
+          <Avatar alt={username} src="avatar.png" />
+          <p>{username}</p>
+          <Button variant="text" onClick={logout}>
+            LOGOUT
+          </Button>
+        </Stack>
+      ) : (
+        <Stack direction="row" spacing={2}>
+          <Button
+            variant="text"
+            onClick={() => history.push("/login")}
+          >
+            LOGIN
+          </Button>
+          <Button
+            variant="contained"
+            onClick={() => history.push("/register")}
+          >
+            REGISTER
+          </Button>
+        </Stack>
+      )}
+    </Box>
+  );
 };
 
 export default Header;

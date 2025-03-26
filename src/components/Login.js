@@ -43,32 +43,29 @@ const Login = () => {
    *
    */
   const login = async (formData) => {
-
-  //  console.log(formData)
-    let url=config.endpoint;
-    try{
-
-      let res= await axios.post(`${url}/auth/login`,formData);
-      if(res.data.success){
-        enqueueSnackbar("Logged in successfully",{ variant: 'success' });
-        let {token,username,balance}=res.data;
-        persistLogin(token,username,balance-0)
-      
+    let url = config.endpoint;
+    try {
+      let response = await axios.post(`${url}/auth/login`, formData);
+      if (response.data.success) {
+        enqueueSnackbar("Logged in successfully", { variant: 'success' });
+        // Store user data in localStorage
+        persistLogin(
+          response.data.token,
+          formData.username,  // Use the username from form data
+          response.data.balance || 5000
+        );
+        history.push("/");
       }
-    }catch(e){
-      axios.post(`${url}/auth/login`,formData).catch((e)=>{
-        if(e.response){
-          console.log(e.response)
-          enqueueSnackbar(e.response.data.message,{ variant: 'error' })
-        }
-        else {
-          // Something happened in setting up the request that triggered an Error
-          enqueueSnackbar("Something went wrong. Check that the backend is running, reachable and returns valid JSON.",{ variant: 'error' })
-        }
-      })
+    } catch (e) {
+      if (e.response) {
+        enqueueSnackbar(e.response.data.message, { variant: 'error' });
+      } else {
+        enqueueSnackbar(
+          "Something went wrong. Check that the backend is running, reachable and returns valid JSON.",
+          { variant: 'error' }
+        );
+      }
     }
-
-
   };
 
   // TODO: CRIO_TASK_MODULE_LOGIN - Validate the input
@@ -128,12 +125,9 @@ const Login = () => {
 
 
   const persistLogin = (token, username, balance) => {
-
-    localStorage.setItem("token",token);
-    localStorage.setItem('username',username);
-    localStorage.setItem('balance',balance);
-    history.push("/")
-
+    localStorage.setItem("token", token);
+    localStorage.setItem("username", username);
+    localStorage.setItem("balance", balance);
   };
 
   return (
@@ -173,7 +167,7 @@ const Login = () => {
            onClick={evenHandler}
            >LOGIN TO QKART</Button>
            <p className="secondary-action">
-           Don’t have an account?{" "}
+           Don't have an account?{" "}
             <Link to="/register" className={"link"}>Register now</Link>
           </p>
            

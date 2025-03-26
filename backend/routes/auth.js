@@ -1,89 +1,90 @@
-var express = require("express");
-var router = express.Router();
-const { handleError } = require("../utils");
-var { users } = require("../db");
-const crypto = require("crypto");
-const jwt = require("jsonwebtoken");
-const config = require("../config.json");
+const express = require('express');
+const router = express.Router();
+const jwt = require('jsonwebtoken');
+const { nanoid } = require('nanoid');
+const { handleError } = require('../utils');
+const { users } = require('../db');
+const config = require('../config.json');
 
-router.post("/register", (req, res) => {
-  console.log(`GET request to "/auth/register" received for user}`);
+// Register
+router.post('/register', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        
+        // Check if user already exists
+        const existingUser = await users.findOne({ username });
+        if (existingUser) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Username already exists' 
+            });
+        }
 
-  users.findOne({ username: req.body.username }, (err, user) => {
-    if (err) {
-      return handleError(res, err);
+        // Create new user
+        const user = new users({
+            username,
+            password, // In production, hash this password
+            balance: 5000,
+            cart: [],
+            addresses: []
+        });
+
+        await user.save();
+        
+        // Generate token after registration
+        const token = jwt.sign(
+            { 
+                userId: user._id,
+                username: user.username 
+            }, 
+            config.jwtSecret,
+            { expiresIn: '24h' }
+        );
+
+        res.status(201).json({ 
+            success: true,
+            token,
+            username: user.username,
+            balance: user.balance
+        });
+    } catch (error) {
+        return handleError(res, error);
     }
-    if (user) {
-      return res.status(400).json({
-        success: false,
-        message: "Username already exists",
-      });
-    }
-    // if (req.body.username.length < 6 || req.body.username.length > 32) {
-    //     return res.status(400).json({
-    //         success: false,
-    //         message:
-    //             'Username must be between 6 and 32 characters in length'
-    //     });
-    // }
-    // if (req.body.password.length < 6 || req.body.password.length > 32) {
-    //     return res.status(400).json({
-    //         success: false,
-    //         message:
-    //             'Password must be between 6 and 32 characters in length'
-    //     });
-    // }
-    users.insert({
-      username: req.body.username,
-      password: sha256(req.body.password),
-      balance: 5000,
-      cart: [],
-      addresses: [],
-    });
-
-    console.log(`Registered user: ${req.body.username}`);
-
-    return res.status(201).json({
-      success: true,
-    });
-  });
 });
 
-router.post("/login", (req, res) => {
-  console.log(`POST request to "/auth/login" received`);
+// Login
+router.post('/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        
+        // Find user
+        const user = await users.findOne({ username });
+        if (!user || user.password !== password) { // In production, use proper password comparison
+            return res.status(401).json({ 
+                success: false, 
+                message: 'Invalid credentials' 
+            });
+        }
 
-  users.findOne({ username: req.body.username }, (err, user) => {
-    if (err) {
-      return handleError(res, err);
-    }
-    if (!user) {
-      return res.status(400).json({
-        success: false,
-        message: "Username does not exist",
-      });
-    }
-    if (user.password !== sha256(req.body.password)) {
-      return res.status(400).json({
-        success: false,
-        message: "Password is incorrect",
-      });
-    }
-    const token = jwt.sign({ username: user.username }, config.jwtSecret, {
-      expiresIn: "6h",
-    });
+        // Generate token
+        const token = jwt.sign(
+            { 
+                userId: user._id,
+                username: user.username 
+            }, 
+            config.jwtSecret,
+            { expiresIn: '24h' }
+        );
 
-    console.log(`Logged in as user: ${req.body.username}`);
-
-    return res.status(201).json({
-      success: true,
-      token: token,
-      username: user.username,
-      balance: user.balance,
-    });
-  });
+        res.json({ 
+            success: true,
+            token,
+            username: user.username,
+            balance: user.balance
+        });
+    } catch (error) {
+        return handleError(res, error);
+    }
 });
-
-const sha256 = (input) =>
-  crypto.createHash("sha256").update(input, "utf8").digest("hex");
 
 module.exports = router;
